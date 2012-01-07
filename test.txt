@@ -1,3 +1,5 @@
 This is a git test file.
 
 Enough.
+
+This is a new change.
