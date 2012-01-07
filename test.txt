@@ -1,3 +1,5 @@
 This is a git test file.
 
-This is Edwins edit. Test.
+Enough.
+
+This is a new change.
