@@ -75,7 +75,7 @@ function prodqueue_admin_settings_submit($form_id, &$form_state) {
     
     foreach($form_state['values']['types'] as $type => $values) {
         if($values['enabled'] == 1) {
-            db_query('INSERT INTO {prodqueue_settings} (type, points, revisit) VALUES("%s", %d, %d)', $type, $values['points'], $values['revisit']);
+            db_query('INSERT INTO {prodqueue_settings} (type, points, revisit) VALUES("%s", %f, %d)', $type, $values['points'], $values['revisit']);
         }
     }
     

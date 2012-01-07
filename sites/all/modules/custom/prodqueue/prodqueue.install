@@ -44,7 +44,7 @@ function prodqueue_schema() {
         'not null' => TRUE, 
         ),
       'points' => array(
-        'type' => 'int', 
+        'type' => 'float', 
         'not null' => TRUE, 
         'default' => 0
         ),
