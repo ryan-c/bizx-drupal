@@ -279,12 +279,15 @@ function prodqueue_admin_settings() {
     foreach($types as $machine => $name) {
         $form['types'][$machine]['enabled'] = array('#type' => 'checkbox');
         $form['types'][$machine]['content_type'] = array('#value' => $name);
-        $form['types'][$machine]['points'] = array('#type' => 'textfield', '#value' => 2.5);
-        $form['types'][$machine]['revisit'] = array('#type' => 'textfield', '#value' => 365);
+        $form['types'][$machine]['points'] = array('#type' => 'textfield', '#size' => 3, '#value' => 2.5);
+        $form['types'][$machine]['revisit'] = array('#type' => 'textfield', '#size' => 3, '#value' => 365);
     }
     
+    // Apply system_settings_form fields before theme, since theme is reset.
+    $form = system_settings_form($form);
+    
     $form['#theme'] = 'prodqueue_admin_form';
-	$form['array_filter'] = array('#type' => 'hidden');
+    $form['#tree'] = TRUE;
 	return $form;
 }
 
@@ -298,6 +301,8 @@ function prodqueue_theme() {
 
 
 function theme_prodqueue_admin_form($form) {
+    $output = t("<p>Settings to determine which " . l(t('Content Types'), 'admin/content/types') . " are managed by the Production Queue. You can also set the points to award the Author upon Publish, as well as default Revisit period.</p>");
+    
     $rows = array();
     
     foreach(element_children($form['types']) as $key) {
@@ -311,7 +316,7 @@ function theme_prodqueue_admin_form($form) {
     
     $header = array('', t('Content Type'), t('Points'), t('Default Revisit Time (Days)'));
     
-    $output = theme('table', $header, $rows);
+    $output .= theme('table', $header, $rows);
     
     return $output . drupal_render($form);
 }

@@ -54,7 +54,6 @@ function prodqueue_schema() {
         'default' => 0
       ),
     ),
-    'primary key' => array('nid'),
    );
  
    $schema['prodqueue'] = array(
