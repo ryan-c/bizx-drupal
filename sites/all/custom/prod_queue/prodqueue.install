@@ -1,0 +1,165 @@
+<?php
+
+/**
+ * @file
+ * seo keywords module's install and uninstall code.
+ */
+
+/**
+ * Implementation of hook_install().
+ */
+function prodqueue_install() {
+  drupal_install_schema('prodqueue');
+  drupal_set_message('Give yourself a pat in the back. BIZX Production Queue Installed Succesfully');
+}
+
+/**
+ * Implementation of hook_uninstall().
+ */
+function prodqueue_uninstall() {
+  drupal_uninstall_schema('prodqueue');
+  drupal_set_message('BIZX Production Queue Uninstalled Succesfully');
+}
+
+/**
+ * Implementation of hook_schema().
+ */
+function prodqueue_schema() {
+/*
+  $schema['prodqueue'] = array(
+    'description' => 'Table for BIZX Production Queue module',
+    'fields' => array(
+      'nid'     => array('type' => 'int', 'unsigned' => TRUE, 'not null' => TRUE, 'default' => 0),
+      'private' => array('type' => 'int', 'not null' => TRUE, 'default' => 0),
+    ),
+    'primary key' => array('nid'),
+  );
+*/
+ 
+   $schema['prodqueue'] = array(
+	'description' => 'Table for BIZX Production Queue module',
+    'fields' => array(
+	  'nid' => array(
+        'type' => 'int',
+        'unsigned' => TRUE,
+        'not null' => TRUE,
+        'default' => 0),
+    'uid' => array(
+		'description' => 'uid of user who requested content',
+        'type' => 'int',
+        'unsigned' => TRUE,
+        'not null' => TRUE,
+        'default' => 0),
+	  'request_time' => array(
+		'type' => 'int',
+		'unsigned' => TRUE,
+		'not null' => TRUE,
+		'default' => 0),
+	'checked_out' => array(
+		'type' => 'int',
+		'not null' => TRUE,
+		'default' => 0),
+	  'checked_out_uid' => array(
+		'description' => 'uid of user who has checked out content',
+		'type' => 'int',
+		'not null' => TRUE,
+		'default' => 0),
+	  'checked_out_time' => array(
+		'type' => 'int',
+		'unsigned' => TRUE,
+		'not null' => TRUE,
+		'default' => 0),
+	  'photo_ready' => array(
+		'type' => 'int',
+		'not null' => TRUE,
+		'default' => -1),
+	  'photo_ready_time' => array(
+		'type' => 'int',
+		'unsigned' => TRUE,
+		'not null' => TRUE,
+		'default' => 0),
+	  'content_ready' => array(
+		'type' => 'int',
+		'not null' => TRUE,
+		'default' => -1),
+	  'content_ready_time' => array(
+		'type' => 'int',
+		'unsigned' => TRUE,
+		'not null' => TRUE,
+		'default' => 0),
+	  'editor_ready' => array(
+		'type' => 'int',
+		'not null' => TRUE,
+		'default' => -1),
+	  'editor_ready_time' => array(
+		'type' => 'int',
+		'unsigned' => TRUE,
+		'not null' => TRUE,
+		'default' => 0),
+	  'rejected' => array(
+		'type' => 'int',
+		'not null' => TRUE,
+		'default' => -1),
+	'rejected_time' => array(
+		'type' => 'int',
+		'unsigned' => TRUE,
+		'not null' => TRUE,
+		'default' => 0),
+    ),
+    'primary key' => array('nid'),
+  );
+
+   $schema['prodqueue_requested_edits'] = array(
+	'description' => 'Table for tracking requested edits on nodes',
+    'fields' => array(
+	'nid' => array(
+        'type' => 'int',
+        'unsigned' => TRUE,
+        'not null' => TRUE,
+        'default' => 0),
+	'vid' => array(
+        'type' => 'int',
+        'unsigned' => TRUE,
+        'not null' => TRUE,
+        'default' => 0),
+    'request_uid' => array(
+		'description' => 'uid of user who requested the change',
+        'type' => 'int',
+        'unsigned' => TRUE,
+        'not null' => TRUE,
+        'default' => 0),
+	'request_reason' => array(
+		'type' => 'text',
+		'size' => 'normal'),
+	'request_time' => array(
+		'type' => 'int',
+		'unsigned' => TRUE,
+		'not null' => TRUE,
+		'default' => 0),
+	'request_response' => array(
+		'type' => 'text',
+		'size' => 'normal'),
+	'response' => array(
+		'description' => 'no response= -1, approved=1 and denided=0',
+		'type' => 'int',
+		'not null' => TRUE,
+		'default' => -1),
+    'response_uid' => array(
+		'description' => 'uid of user who requested the change',
+        'type' => 'int',
+        'unsigned' => TRUE,
+        'not null' => TRUE,
+        'default' => 0),	
+	'response_time' => array(
+		'type' => 'int',
+		'unsigned' => TRUE,
+		'not null' => TRUE,
+		'default' => 0),
+    ),
+    'primary key' => array('nid'),
+  );
+  
+  return $schema;
+}
+
+

@@ -1,0 +1,5 @@
+; $Id$
+name = Custom Google Analytics Configuration
+description = "Provides a custom solution to switch on/off google analytics"
+core = 6.x
+package = Bizx
