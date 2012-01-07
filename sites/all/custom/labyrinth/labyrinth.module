@@ -1,0 +1,108 @@
+<?php
+
+/**
+ * @file
+ * Lets users add a link to a content type on edit form.
+ * This link passes the node url and focused keywords to the 
+ * Labyrinth system.
+ * 
+ * 
+ */
+
+/**
+* Implementation of hook_menu.
+*/
+function labyrinth_menu() {
+  $items['admin/settings/labyrinth'] = array(
+    'title' => 'Labyrinth',
+    'description' => 'Enable or disable Labyrinth for content types.',
+    'page callback' => 'labyrinth_settings',
+	//'callback arguments' => array('labyrinth_admin_settings'),
+    'access callback' => TRUE,
+    'expanded' => TRUE,
+  );
+	
+	return $items;
+}
+
+function labyrinth_settings(){
+	 return drupal_get_form('labyrinth_admin_settings');
+}
+
+/*
+ * Define the settings form 
+ */
+function labyrinth_admin_settings() {
+	$form['labyrinth_nodetypes'] = array(
+		'#type' => 'checkboxes',
+		'#title' => t('Labyrinth may be applied to these node types'),
+		'#options' => node_get_types('names'),
+		'#default_value' => variable_get('labyrinth_nodetypes', array('story')),
+		'#description' => t('Labyrinth will be available on these node types.'),
+	);
+	$form['array_filter'] = array('#type' => 'hidden');
+	return system_settings_form($form);
+}
+
+
+function labyrinth_form_alter(&$form, $form_state, $form_id) {
+    global $user;
+
+	if($form['#id'] == "node-form") 
+	{
+		if((in_array('Power Admin',$user->roles))) { //make sure you are a "power admin"
+		    $node=node_load(arg(1));
+			$path = base64_encode("http://".$_SERVER['SERVER_NAME']."/".$node->path);
+			if($node->field_focus_keyword1[0]['value'] != '') {
+			   $focus1 = $node->field_focus_keyword1[0]['value'];
+			}
+			if($node->field_focus_keyword2[0]['value'] != '') {
+			   $focus2 = $node->field_focus_keyword2[0]['value'];
+			}
+			if($node->field_focus_keyword3[0]['value'] != '') {
+			   $focus3 = $node->field_focus_keyword3[0]['value'];
+			}
+			if($node->field_focus_keyword4[0]['value'] != '') {
+			   $focus4 = $node->field_focus_keyword4[0]['value'];
+			}
+			// build the url from the focus keyword vars
+			$url = "http://lasvegas.nyctourist.com/labyrinth/index.php?page=".$path
+				."&meta=".$node->title
+				."&key1=".$focus1
+				."&key2=".$focus2
+				."&key3=".$focus3
+				."&key4=".$focus4;	
+			      			
+			$form['labyrinth'] = array(
+			'#type' => 'fieldset',
+			'#title' => 'Labyrinth',
+			'#tree' => FALSE,
+			'#weight'=> 116
+		   );
+		//menu_rebuild();
+			$form['labyrinth']['page'] = array(
+				'#value' => "<a href='".$url."' target='blank'>Check into Labyrinth</a>"
+			);	
+		}
+		
+		$types_to_labyrinth = variable_get('labyrinth_nodetypes', array('story'));
+		// $types = array('keywordpage','hotel_billboard');
+		$node2 = node_load(arg(1));
+
+	
+		if(in_array($node2->type,$types_to_labyrinth))
+		{
+			$url2 = "/custom_related_nodes.php?nid=".$node2->nid;
+			$form['related_nodes'] = array(
+				'#type' => 'fieldset',
+				'#title' => 'Related Nodes',
+				'#tree' => FALSE,
+				'#weight'=> 117
+			   );
+			$form['related_nodes']['page'] = array(
+					'#value' => "<a href='".$url2."' target='_blank'>Link Related nodes</a>"
+				);	
+		}
+	}
+}
+

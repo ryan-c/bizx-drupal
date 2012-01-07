@@ -1,0 +1,49 @@
+<?php
+
+/**
+ * @file
+ * seo keywords module's install and uninstall code.
+ */
+
+/**
+ * Implementation of hook_install().
+ */
+function seo_keywords_install() {
+  drupal_install_schema('seo_keywords');
+}
+
+/**
+ * Implementation of hook_uninstall().
+ */
+function seo_keywords_uninstall() {
+  drupal_uninstall_schema('seo_keywords');
+}
+
+/**
+ * Implementation of hook_schema().
+ */
+function seo_keywords_schema() {
+  $schema['seo_keywords'] = array(
+    'fields' => array(
+	  'nid'      => array('type' => 'int', 'unsigned' => TRUE, 'not null' => TRUE, 'default' => 0),
+      'vid'      => array('type' => 'int', 'unsigned' => TRUE, 'not null' => TRUE, 'default' => 0),
+	  'timestamp' => array('type' => 'int', 'unsigned' => TRUE, 'not null' => TRUE, 'default' => 0),
+	  'total_word_count' => array('type' => 'int', 'unsigned' => TRUE, 'not null' => TRUE, 'default' => 0),
+      'keyword1'    => array('type' => 'varchar', 'length' => 255, 'not null' => TRUE, 'default' => ''),
+      'keyword1_instances' => array('type' => 'int', 'unsigned' => TRUE, 'not null' => TRUE, 'default' => 0),
+	  'keyword1_density'    => array('type' => 'varchar', 'length' => 255, 'not null' => TRUE, 'default' => ''),
+	  'keyword2'    => array('type' => 'varchar', 'length' => 255, 'not null' => TRUE, 'default' => ''),
+      'keyword2_instances' => array('type' => 'int', 'unsigned' => TRUE, 'not null' => TRUE, 'default' => 0),
+	  'keyword2_density'    => array('type' => 'varchar', 'length' => 255, 'not null' => TRUE, 'default' => ''),
+	  'keyword3'    => array('type' => 'varchar', 'length' => 255, 'not null' => TRUE, 'default' => ''),
+      'keyword3_instances' => array('type' => 'int', 'unsigned' => TRUE, 'not null' => TRUE, 'default' => 0),
+	  'keyword3_density'    => array('type' => 'varchar', 'length' => 255, 'not null' => TRUE, 'default' => ''),
+	  'keyword4'    => array('type' => 'varchar', 'length' => 255, 'not null' => TRUE, 'default' => ''),
+      'keyword4_instances' => array('type' => 'int', 'unsigned' => TRUE, 'not null' => TRUE, 'default' => 0),
+	  'keyword4_density'    => array('type' => 'varchar', 'length' => 255, 'not null' => TRUE, 'default' => ''),
+    ),
+    'primary key' => array('vid', 'nid'),
+  );
+
+  return $schema;
+}
