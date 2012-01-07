@@ -1,0 +1,8 @@
+; $Id$
+name = Production Queue
+description = "Creates a chain process to create content among several participants"
+core = 6.x
+package = Bizx
+version = 6.x-1.0
+
+dependencies[] = seo_keywords

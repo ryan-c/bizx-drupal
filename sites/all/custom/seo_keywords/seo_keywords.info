@@ -1,0 +1,6 @@
+; $Id$
+name = SEO Keywords
+description = "Provides SEO keyword checks for the requested focus keywords on pages"
+core = 6.x
+package = Bizx
+version = 6.x-1.0

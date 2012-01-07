@@ -1,0 +1,573 @@
+<?php
+function seo_keywords_menu() {
+    global $db_url;
+    $items = array();
+    
+    $items['admin/settings/bizx/seo_keywords'] = array(
+      'title'    =>  'Custom SEO Configuration',
+      'description' => 'Custom SEO Configuration for cck field associated with different content types.',
+      'page callback'  =>  'seo_keywords_admin_settings',
+      'access callback' => TRUE,
+      'type' => MENU_NORMAL_ITEM
+    );
+  
+    return $items;
+}
+
+function seo_keywords_admin_settings() {  
+    $output .= drupal_get_form('seo_keywords_admin_form');  
+    return $output;
+}
+
+function seo_keywords_admin_form() {
+    $form = array();
+        
+    $form['seo'] = array(
+      '#type' => 'fieldset', 
+      '#title' => t('SEO Settings'), 
+      '#tree' => TRUE,
+	  '#collapsible' => FALSE
+    );
+    
+    $form['seo']['focus_keyword1'] = array(
+      '#type' => 'textfield',
+      '#title' => t('Focus Keyword Phrase 1'),
+      '#default_value' => variable_get('focus_keyword1',6),
+	  '#description'=>'minimum instances for  Focus Keyword Phrase 1 on the page'
+    );
+    
+    $form['seo']['focus_keyword2'] = array(
+      '#type' => 'textfield',
+      '#title' => t('Focus Keyword Phrase 2'),
+      '#default_value' =>  variable_get('focus_keyword2',4),
+	  '#description'=>'minimum instances for  Focus Keyword Phrase 2 on the page'
+    );
+	
+	 $form['seo']['focus_keyword3'] = array(
+      '#type' => 'textfield',
+      '#title' => t('Focus Keyword Phrase 3'),
+      '#default_value' =>  variable_get('focus_keyword3',2),
+	  '#description'=>'minimum instances for  Focus Keyword Phrase 3 on the page'
+    );
+	  $form['seo']['focus_keyword4'] = array(
+      '#type' => 'textfield',
+      '#title' => t('Focus Keyword Phrase 4'),
+      '#default_value' =>  variable_get('focus_keyword4',1),
+	  '#description'=>'minimum instances for  Focus Keyword Phrase 4 on the page'
+    );
+    
+    $form['submit'] = array('#type' => 'submit', '#value' => t('Save Configuration'));
+    
+    return $form;
+}
+  
+  
+function seo_keywords_admin_form_submit($form, &$form_state) {
+    variable_set('focus_keyword1', $form_state['values']['seo']['focus_keyword1']);
+	variable_set('focus_keyword2', $form_state['values']['seo']['focus_keyword2']);
+	variable_set('focus_keyword3', $form_state['values']['seo']['focus_keyword3']);
+	variable_set('focus_keyword4', $form_state['values']['seo']['focus_keyword4']);
+    drupal_set_message(t('Your settings have been saved.'));
+}
+
+/*
+ * Display seo link
+ * 
+ */
+ 
+function seo_keywords_form_alter(&$form, $form_state, $form_id) {
+    
+	if ($form_id == 'node_type_form' && isset($form['identity']['type'])) {
+		// Alter the node type's configuration form to add our setting. We don't
+		// need to worry about saving this value back to the variable, the form
+		// we're altering will do it for us.
+		$form['workflow']['nodeapi_seo_keywords'] = array(
+			'#type' => 'radios',
+			'#title' => t('SEO Keyword Check'),
+			'#default_value' => variable_get('seo_keyword_'. $form['#node_type']->type, 0),
+			'#options' => array(0 => t('Disabled'), 1 => t('Enabled')),
+			'#description' => t('Should this node have SEO Keywords Check?'),
+		);
+	}
+	
+	// Only show the current form if we're editting the form of the node
+	if($form['#id'] == "node-form")  {
+		
+		    $node=node_load(arg(1));
+		//if(strpos($node->type,"landing")>0|| ($node->type == "page") || ($node->type == "story")|| ($node->type == "keywordpage")) {	
+			$url = "http://".$_SERVER['HTTP_HOST']."/seo-check?nid=".$node->nid;	
+			 
+			$result = db_query("SELECT * FROM {seo_keywords} WHERE nid = %d AND vid = %d",
+								$node->nid, $node->vid);
+			$kw_data = db_fetch_object($result);
+			
+			 
+			$form['seo_keywords'] = array(
+				'#type' => 'fieldset',
+				'#title' => 'SEO Keyword Check',
+				'#tree' => FALSE,
+				'#weight'=> 117
+		   );
+		
+			//$form['seo_keywords']['page'] = array(
+			//	'#value' => "<a href='".$url."' target='blank'>Check seo for this page</a>"
+			//);
+			$form['seo_keywords']['keyword1'] = array(
+				'#type' => 'textfield',
+				'#title' => t('Keyword 1'),
+				'#size' => 30,
+				'#maxlength' => 35,
+				'#default_value' => $kw_data->keyword1,
+				'#description' => t('Focus Keyword 1 - Minimun required instances: '. variable_get('focus_keyword1','no default set'))
+			);
+			if($kw_data->keyword1_instances > 0) {
+				$form['seo_keywords']['keyword1_instances'] = array(
+					'#value' => 'Keyword 1 <br />Instances:'.$kw_data->keyword1_instances." <br />Density:".$kw_data->keyword1_density
+				);
+			}
+			$form['seo_keywords']['keyword2'] = array(
+			    '#type' => 'textfield',
+			    '#title' => t('Keyword 2'),
+				'#size' => 30,
+				'#maxlength' => 35,
+				'#default_value' => $kw_data->keyword2,
+				'#description' => t('Focus Keyword 2 - Minimun required instances: '. variable_get('focus_keyword2','no default set'))
+			);
+			if($kw_data->keyword2_instances > 0) {
+				$form['seo_keywords']['keyword2_instances'] = array(
+					'#value' => 'Keyword 2 <br />Instances:'.$kw_data->keyword2_instances." <br />Density:".$kw_data->keyword2_density
+				);
+			}
+			$form['seo_keywords']['keyword3'] = array(
+				'#type' => 'textfield',
+				'#title' => t('Keyword 3'),
+				'#size' => 30,
+				'#maxlength' => 35,
+				'#default_value' => $kw_data->keyword3,
+				'#description' => t('Focus Keyword 3 - Minimun required instances: '. variable_get('focus_keyword3','no default set'))
+			);
+			if($kw_data->keyword3_instances > 0) {
+				$form['seo_keywords']['keyword3_instances'] = array(
+					'#value' => 'Keyword 3 <br />Instances:'.$kw_data->keyword3_instances." <br />Density:".$kw_data->keyword3_density
+				);
+			}
+			$form['seo_keywords']['keyword4'] = array(
+				'#type' => 'textfield',
+				'#title' => t('Keyword 4'),
+				'#size' => 30,
+				'#maxlength' => 35,
+				'#default_value' => $kw_data->keyword4,
+				'#description' => t('Focus Keyword 4 - Minimun required instances: '. variable_get('focus_keyword4','no default set'))
+			);
+			if($kw_data->keyword4_instances > 0) {
+				$form['seo_keywords']['keyword4_instances'] = array(
+					'#value' => 'Keyword 4 <br />Instances:'.$kw_data->keyword4_instances." <br />Density:".$kw_data->keyword14_density
+				);
+			}
+		//}	
+		
+	
+	}
+}
+
+
+/**
+* Implementation of hook_nodeapi().
+*/
+function seo_keywords_nodeapi(&$node, $op, $teaser, $page) {
+    switch ($op) {
+		case 'view':
+			global $user;
+			// If only the node summary is being displayed, or if the
+			// user is an anonymous user (not logged in), abort.
+			if ($teaser || $user->uid == 0) {
+				break;
+			}
+			//$types_to_annotate = variable_get('annotate_nodetypes', array('story'));
+			//if (!in_array($node->type, $types_to_annotate)) {	
+				//break;
+			//}
+			// Add our form as a content item.
+			$node->content['seo_keywords_form'] = array(
+				'#value' => drupal_get_form('seo_keywords_entry_form', $node),
+				'#weight' => 10
+			);
+			break;
+		    
+		// When the content editing form is submitted, we need to validate the input
+		// to make sure the user made a selection, since we are requiring the SEO keywords. 
+		case 'validate':
+			
+			//if (variable_get('nodeapi_example_'. $node->type, TRUE)) {
+				if (isset($node->keyword1) && !$node->keyword1) {
+					form_set_error('keyword1', t('You must enter a keyword for keyword 1'));
+				}
+				if (isset($node->keyword2) && !$node->keyword2) {
+					form_set_error('keyword2', t('You must enter a keyword for keyword 2'));
+				}
+				/*
+				if (isset($node->keyword1) && !$node->keyword3) {
+					form_set_error('keyword1', t('You must enter a keyword for keyword 3'));
+				}
+				if (isset($node->keyword2) && !$node->keyword4) {
+					form_set_error('keyword2', t('You must enter a keyword for keyword 4'));
+				}
+				*/
+				
+			//}
+			break;
+			
+		// Update is called when an existing node has been changed. 
+		case 'update':
+			//if (variable_get('nodeapi_example_'. $node->type, 0)) {
+			//drupal_set_message(t('Your annotation was saved.'.'k1'.$node->keyword1.' k2'.$node->keyword2));
+				db_query("DELETE FROM {seo_keywords} WHERE nid = %d AND vid = %d", $node->nid, $node->vid);
+				db_query("INSERT INTO {seo_keywords} (nid, vid, timestamp, keyword1, keyword2, keyword3, keyword4) 
+						VALUES (%d, %d, %d, '%s', '%s', '%s', '%s')", $node->nid, $node->vid, time(), $node->keyword1, $node->keyword2, $node->keyword3, $node->keyword4);
+			//}
+			$keywords = array(
+				'keyword1' => $node->keyword1, 
+				'keyword2' => $node->keyword2, 
+				'keyword3' => $node->keyword3, 
+				'keyword4' => $node->keyword4);
+			dsm($op);
+			//if(!$node->is_request) {
+				if(!isset($node->revision_moderation)) {
+					seo_keywords_checkseo($node->nid,$node->vid,$keywords);
+					dsm($node);
+				}
+			//}
+			break;
+			
+		// Delete is called when the node is being deleted, it gives us a chance
+		// to delete the seo keywords and all revisions as well.
+		case 'delete':
+			db_query('DELETE FROM {seo_keywords} WHERE nid = %d', $node->nid);
+			break;
+			
+		// When a node revision is deleted, we need to remove the corresponding
+		// record from our table. 
+		case 'delete revision':
+			// Notice that we're matching a single revision based on the node's vid.
+			db_query('DELETE FROM {seo_keywords} WHERE vid = %d', $node->vid);
+			break;
+	}
+}
+
+
+
+// do the check
+$somecount = 0;
+function seo_keywords_checkseo($nodeid,$nodevid=NULL,$keywords){
+$somecount++;
+	$node=node_load($nodeid,$nodevid);
+	//grab the rendered content of the node and lowercase it 
+	$nodeview = strtolower(node_view($node));
+	
+	// grab the focus keywords
+	/*
+	$result = db_query("SELECT * FROM {seo_keywords} WHERE nid = %d AND vid = %d",
+								$node->nid, $node->vid);
+	$kw_data = db_fetch_object($result);
+	*/
+	
+	//remove images
+	$nodeview = preg_replace("/<img[^>]+\>/i", "",$nodeview);
+	$nodeview = trim_html($nodeview);
+	$nodeview = html_entity_decode($nodeview);
+	
+	// count the instances of eache focus keyword in the node
+
+	$keyword1_count = substr_count($nodeview, html_entity_decode(trim(strtolower($keywords['keyword1']))));
+	$keyword2_count = substr_count($nodeview, html_entity_decode(trim(strtolower($keywords['keyword2']))));
+	$keyword3_count = substr_count($nodeview, html_entity_decode(trim(strtolower($keywords['keyword3']))));
+	$keyword4_count = substr_count($nodeview, html_entity_decode(trim(strtolower($keywords['keyword4']))));
+	
+	$total_word_count = str_word_count($nodeview);
+    
+    $keyword1_density = number_format(($keyword1_count *100)/ $total_word_count,2).'%';
+    $keyword2_density = number_format(($keyword2_count *100)/ $total_word_count,2).'%';
+    $keyword3_density = number_format(($keyword3_count *100)/ $total_word_count,2).'%';
+    $keyword4_density = number_format(($keyword4_count *100)/ $total_word_count,2).'%';
+
+
+	//db_query("DELETE FROM {seo_keywords} WHERE nid = %d AND vid = %d", $node->nid, $node->vid);
+	//db_query("INSERT INTO {seo_keywords} (nid, vid, timestamp, keyword1, keyword2, keyword3, keyword4) 
+			//VALUES (%d, %d, %d, '%s', '%s', '%s', '%s')", $node->nid, $node->vid, time(), $node->keyword1, $node->keyword2, $node->keyword3, $node->keyword4);
+	
+	/*db_query("INSERT INTO {seo_keywords} (
+	nid,vid,timestamp,total_wordcount,
+	keyword1,keyword1_instances,keyword1_density,
+	keyword1,keyword1_instances,keyword1_density,
+	keyword1,keyword1_instances,keyword1_density,
+	keyword1,keyword1_instances,keyword1_density
+	)
+	VALUES (%d,%d,%d,%d,
+	'%s',%d,'%s',
+	'%s',%d,'%s',
+	'%s',%d,'%s',
+	'%s',%d,'%s')",
+	$node->id, $node->vid,time(), $total_word_count, 
+			$keywords['keyword1'],$keyword1_count, $keyword1_density, 
+			$keywords['keyword2'],$keyword2_count, $keyword2_density, 
+			$keywords['keyword3'],$keyword3_count, $keyword3_density, 
+			$keywords['keyword4'],$keyword4_count, $keyword4_density);
+	*/
+	
+	
+	db_query("UPDATE {seo_keywords} SET 
+			timestamp = %d, 
+			total_word_count = %d,
+			keyword1_instances = %d, keyword1_density = %d,
+			keyword2_instances = %d, keyword2_density = %d,
+			keyword3_instances = %d, keyword3_density = %d,
+			keyword4_instances = %d, keyword4_density = %d
+			WHERE nid = %d AND vid = %d ",
+			time(), $total_word_count, 
+			$keyword1_count, $keyword1_density, 
+			$keyword2_count, $keyword2_density, 
+			$keyword3_count, $keyword3_density, 
+			$keyword4_count, $keyword4_density, 
+			$node->nid, $node->vid);
+	
+	
+	// check if they meet required minimun of instances
+	if(($keyword1_count <  variable_get('focus_keyword1', 0)) 
+		|| ($keyword2_count <  variable_get('focus_keyword2', 0)) 
+		|| ($keyword3_count <  variable_get('focus_keyword3', 0)) 
+		|| ($keyword4_count <  variable_get('focus_keyword4', 0))) {
+		
+		$message = "Focus Keywords do not meet the minimun number of required instances.
+					Please  revisit the page: $nodevid and $node->vid count: $somecount<br>"
+					.$keywords['keyword1'] ."=". $keyword1_count."<br>"
+					.$keywords['keyword2'] ."=". $keyword2_count."<br>"
+					.$keywords['keyword3'] ."=". $keyword3_count."<br>"
+					.$keywords['keyword4'] ."=". $keyword4_count."<br>";
+        drupal_set_message($message, 'error');
+		return TRUE;
+	
+	}else{
+		drupal_set_message("Focus Keywords meet the minimun number of required instances count: $somecount");
+		return FALSE;
+	}
+	
+}
+
+//remove all html 
+function trim_html($s,$keep='',$expand = 'script|style|noframes|select|option') {
+
+$s = ' ' . $s;
+       
+        //initialize keep tag logic
+        if(strlen($keep) > 0){
+            $k = explode('|',$keep);
+            for($i=0;$i<count($k);$i++){
+                $s = str_replace('<' . $k[$i],'[{(' . $k[$i],$s);
+                $s = str_replace('</' . $k[$i],'[{(/' . $k[$i],$s);
+            }
+        }
+       
+        //begin removal
+        //remove comment blocks
+        while(stripos($s,'<!--') > 0){
+            $pos[1] = stripos($s,'<!--');
+            $pos[2] = stripos($s,'-->', $pos[1]);
+            $len[1] = $pos[2] - $pos[1] + 3;
+            $x = substr($s,$pos[1],$len[1]);
+            $s = str_replace($x,'',$s);
+        }
+       
+        //remove tags with content between them
+        if(strlen($expand) > 0){
+            $e = explode('|',$expand);
+            for($i=0;$i<count($e);$i++){
+                while(stripos($s,'<' . $e[$i]) > 0){
+                    $len[1] = strlen('<' . $e[$i]);
+                    $pos[1] = stripos($s,'<' . $e[$i]);
+                    $pos[2] = stripos($s,$e[$i] . '>', $pos[1] + $len[1]);
+                    $len[2] = $pos[2] - $pos[1] + $len[1];
+                    $x = substr($s,$pos[1],$len[2]);
+                    $s = str_replace($x,'',$s);
+                }
+            }
+        }
+       
+        //remove remaining tags
+        while(stripos($s,'<') > 0){
+            $pos[1] = stripos($s,'<');
+            $pos[2] = stripos($s,'>', $pos[1]);
+            $len[1] = $pos[2] - $pos[1] + 1;
+            $x = substr($s,$pos[1],$len[1]);
+            $s = str_replace($x,'',$s);
+        }
+       
+        //finalize keep tag
+        for($i=0;$i<count($k);$i++){
+            $s = str_replace('[{(' . $k[$i],'<' . $k[$i],$s);
+            $s = str_replace('[{(/' . $k[$i],'</' . $k[$i],$s);
+        }
+
+
+	return trim($s);
+}
+
+/**
+* Define the form for entering seo keywords.
+*/
+/*
+function seo_keywords_entry_form($node) {
+	$form['seo_keywords'] = array(
+		'#type' => 'fieldset',
+		'#title' => t('Seo Keywords Check')
+	);
+	$form['seo_keywords']['nid'] = array(
+		'#type' => 'value',
+		'#value' => $node->nid
+	);
+	$form['seo_keywords']['keyword1'] = array(
+		'#type' => 'textfield',
+		'#title' => t('Keyword 1'),
+		//'#default_value' => $node->keyword1,
+		'#description' => t('Focus Keyword 1')
+	);
+	$form['seo_keywords']['keyword2'] = array(
+		'#type' => 'textfield',
+		'#title' => t('Keyword 2'),
+		//'#default_value' => $node->keyword2,
+		'#description' => t('Focus Keyword 2')
+	);
+	$form['seo_keywords']['keyword3'] = array(
+		'#type' => 'textfield',
+		'#title' => t('Keyword 3'),
+		//'#default_value' => $node->keyword3,
+		'#description' => t('Focus Keyword 3')
+	);
+	$form['seo_keywords']['keyword4'] = array(
+		'#type' => 'textfield',
+		'#title' => t('Keyword 4'),
+		//'#default_value' => $node->keyword4,
+		'#description' => t('Focus Keyword 4')
+	);
+	$form['seo_keywords']['submit'] = array(
+		'#type' => 'submit',
+		'#value' => t('Update')
+	);
+	return $form;
+}
+
+*/
+
+
+
+/*
+
+<?php 
+if($_REQUEST['nid'] != '') {
+$que = db_query("UPDATE node set status = 1 WHERE nid= %d",$_REQUEST['nid']);
+$node = node_load($_REQUEST['nid']);
+$url = "http://".$_SERVER["SERVER_NAME"]."/node/".$node->nid;
+//include 'sites/all/themes/cti_flex/templates/includes/custom_striptag.php';
+$Text = strtolower(file_get_contents($url));
+$Text = preg_replace("/<img[^>]+\>/i", "",$Text);
+
+
+$s = $Text;
+$keep = '' ; 
+$expand = 'script|style|noframes|select|option';
+
+$s = ' ' . $s;
+       
+        //initialize keep tag logic
+        if(strlen($keep) > 0){
+            $k = explode('|',$keep);
+            for($i=0;$i<count($k);$i++){
+                $s = str_replace('<' . $k[$i],'[{(' . $k[$i],$s);
+                $s = str_replace('</' . $k[$i],'[{(/' . $k[$i],$s);
+            }
+        }
+       
+        //begin removal
+        //remove comment blocks
+        while(stripos($s,'<!--') > 0){
+            $pos[1] = stripos($s,'<!--');
+            $pos[2] = stripos($s,'-->', $pos[1]);
+            $len[1] = $pos[2] - $pos[1] + 3;
+            $x = substr($s,$pos[1],$len[1]);
+            $s = str_replace($x,'',$s);
+        }
+       
+        //remove tags with content between them
+        if(strlen($expand) > 0){
+            $e = explode('|',$expand);
+            for($i=0;$i<count($e);$i++){
+                while(stripos($s,'<' . $e[$i]) > 0){
+                    $len[1] = strlen('<' . $e[$i]);
+                    $pos[1] = stripos($s,'<' . $e[$i]);
+                    $pos[2] = stripos($s,$e[$i] . '>', $pos[1] + $len[1]);
+                    $len[2] = $pos[2] - $pos[1] + $len[1];
+                    $x = substr($s,$pos[1],$len[2]);
+                    $s = str_replace($x,'',$s);
+                }
+            }
+        }
+       
+        //remove remaining tags
+        while(stripos($s,'<') > 0){
+            $pos[1] = stripos($s,'<');
+            $pos[2] = stripos($s,'>', $pos[1]);
+            $len[1] = $pos[2] - $pos[1] + 1;
+            $x = substr($s,$pos[1],$len[1]);
+            $s = str_replace($x,'',$s);
+        }
+       
+        //finalize keep tag
+        for($i=0;$i<count($k);$i++){
+            $s = str_replace('[{(' . $k[$i],'<' . $k[$i],$s);
+            $s = str_replace('[{(/' . $k[$i],'</' . $k[$i],$s);
+        }
+
+
+$Text = trim($s);
+
+
+
+
+$Text = html_entity_decode($Text);
+echo $Text;
+
+         $focus1_count = substr_count($Text, html_entity_decode(trim(strtolower($node->field_focus_keyword1[0]['value']))));
+         $focus2_count = substr_count($Text, html_entity_decode(trim(strtolower($node->field_focus_keyword2[0]['value']))));
+         $focus3_count = substr_count($Text, html_entity_decode(trim(strtolower($node->field_focus_keyword3[0]['value']))));
+         $focus4_count = substr_count($Text, html_entity_decode(trim(strtolower($node->field_focus_keyword4[0]['value']))));
+
+         if(($focus1_count <  variable_get('focus_keyword1', 0)) || ($focus2_count <  variable_get('focus_keyword2', 0)) || ($focus3_count <  variable_get('focus_keyword3', 0)) || ($focus4_count <  variable_get('focus_keyword4', 0)))
+         {
+             $message = "Focus Keywords do not meet the standard.Please  revisit the page:<br>".$node->field_focus_keyword1[0]['value'] ."=". $focus1_count."<br>".$node->field_focus_keyword2[0]['value'] ."=". $focus2_count."<br>".$node->field_focus_keyword3[0]['value'] ."=". $focus3_count."<br>".$node->field_focus_keyword4[0]['value'] ."=". $focus4_count."<br>";
+             drupal_set_message($message, 'error');
+             $que = db_query("UPDATE node set status = 0 WHERE nid= %d",$_REQUEST['nid']);
+        }
+        else
+        {
+             $total_word_count = str_word_count($Text);
+              $node->field_num_instance_focus1[0]['value'] = $focus1_count;
+              $node->field_num_instance_focus2[0]['value'] = $focus2_count;
+              $node->field_num_instance_focus3[0]['value'] = $focus3_count;
+              $node->field_num_instance_focus4[0]['value'] = $focus4_count;
+              $node->field_total_words[0]['value'] = $total_word_count;
+              $node->field_keyword1_density[0]['value'] = ($focus1_count *100)/ $total_word_count;
+              $node->field_keyword2_density[0]['value'] = ($focus2_count *100)/ $total_word_count;
+              $node->field_keyword3_density[0]['value'] = ($focus3_count *100)/ $total_word_count;
+              $node->field_keyword4_density[0]['value'] = ($focus4_count *100)/ $total_word_count;
+
+              $node->field_keyword1_density[0]['value'] = number_format($node->field_keyword1_density[0]['value'],2).'%';
+              $node->field_keyword2_density[0]['value'] = number_format($node->field_keyword2_density[0]['value'],2).'%';
+              $node->field_keyword3_density[0]['value'] = number_format($node->field_keyword3_density[0]['value'],2).'%';
+              $node->field_keyword4_density[0]['value'] = number_format($node->field_keyword4_density[0]['value'],2).'%';
+           
+              node_save($node);
+              $que = db_query("UPDATE node set status = 0 WHERE nid= %d",$_REQUEST['nid']);
+              drupal_set_message("Focus Keywords meet the standard ");
+        }
+}
+
+*/

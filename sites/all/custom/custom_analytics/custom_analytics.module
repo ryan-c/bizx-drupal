@@ -1,0 +1,57 @@
+<?php
+
+function custom_analytics_menu() {
+    global $db_url;
+    $items = array();
+    
+    $items['admin/settings/bizx/custom_analytics'] = array(
+      'title'    =>  'Custom Google Analytics on/off Configuration',
+      'description' => 'Custom Google Analytics on/off switch. This setting affects if there is analytics or not throughout the site.',
+      'page callback'  =>  'custom_analytics_admin_settings',
+      'access callback' => TRUE,
+      'type' => MENU_NORMAL_ITEM
+    );
+  
+    return $items;
+  }
+  
+  function custom_analytics_admin_form() {
+    $form = array();
+        
+    $form['analytics'] = array(
+      '#type' => 'fieldset', 
+      '#title' => t('Google Analytics Settings'), 
+      '#tree' => TRUE,
+			'#collapsible' => TRUE
+    );
+    
+    
+        $google_analytics = variable_get('google_analytics', NULL);
+        
+        $analytics_options = array();
+        $analytics_options['Off'] = 'Off';
+		$analytics_options['On'] = 'On';
+      
+        
+        $form['analytics']['google_analytics'] = array(
+          '#type' => 'select',
+          '#title' => t('Google Analytics On/Off Switch'),
+          '#options' => $analytics_options,
+          '#default_value' => $google_analytics 
+        );
+    
+    $form['submit'] = array('#type' => 'submit', '#value' => t('Save Configuration'));
+    
+    return $form;
+  }
+  
+  
+  function custom_analytics_admin_form_submit($form, &$form_state) {
+    variable_set('google_analytics', $form_state['values']['analytics']['google_analytics']);
+    drupal_set_message(t('Your settings have been saved.'));
+  }
+  
+  function custom_analytics_admin_settings() {  
+    $output .= drupal_get_form('custom_analytics_admin_form');  
+    return $output;
+  }

@@ -1,0 +1,6 @@
+; $Id$
+name = labyrinth
+description = "Module used to create a labyrinth field in the node edit pages."
+core = 6.x
+package = Bizx
+dependencies[] = custom_seo
