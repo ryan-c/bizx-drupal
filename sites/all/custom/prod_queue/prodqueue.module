@@ -262,17 +262,59 @@ function prodqueue_settings() {
  * Define the settings form 
  */
 function prodqueue_admin_settings() {
-	$form['prodqueue_nodetypes'] = array(
+	/*$form['prodqueue_nodetypes'] = array(
 		'#type' => 'checkboxes',
 		'#title' => t('prodqueue may be applied to these node types'),
 		'#options' => node_get_types('names'),
 		'#default_value' => variable_get('prodqueue_nodetypes', array('story')),
 		'#description' => t('prodqueue will be available on these node types.'),
-	);
+	);*/
+	
+	drupal_set_title(t('Production Queue Settings'));
+    
+    $types = node_get_types('names');
+    
+    // Build a cool settings table, allowing a content type to be checked, and default points and revisit values.
+    
+    foreach($types as $machine => $name) {
+        $form['types'][$machine]['enabled'] = array('#type' => 'checkbox');
+        $form['types'][$machine]['content_type'] = array('#value' => $name);
+        $form['types'][$machine]['points'] = array('#type' => 'textfield', '#value' => 2.5);
+        $form['types'][$machine]['revisit'] = array('#type' => 'textfield', '#value' => 365);
+    }
+    
+    $form['#theme'] = 'prodqueue_admin_form';
 	$form['array_filter'] = array('#type' => 'hidden');
-	return system_settings_form($form);
+	return $form;
 }
 
+function prodqueue_theme() {
+    return array(
+        'prodqueue_admin_form' => array(
+            'arguments' => array('form' => NULL),
+        ),
+    );
+}
+
+
+function theme_prodqueue_admin_form($form) {
+    $rows = array();
+    
+    foreach(element_children($form['types']) as $key) {
+        $row = array();
+        $row[] = drupal_render($form['types'][$key]['enabled']);
+        $row[] = drupal_render($form['types'][$key]['content_type']);
+        $row[] = drupal_render($form['types'][$key]['points']);
+        $row[] = drupal_render($form['types'][$key]['revisit']);
+        $rows[] = $row;
+    }
+    
+    $header = array('', t('Content Type'), t('Points'), t('Default Revisit Time (Days)'));
+    
+    $output = theme('table', $header, $rows);
+    
+    return $output . drupal_render($form);
+}
  
  
  /**

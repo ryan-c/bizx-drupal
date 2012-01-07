@@ -10,7 +10,7 @@
  */
 function prodqueue_install() {
   drupal_install_schema('prodqueue');
-  drupal_set_message('Give yourself a pat in the back. BIZX Production Queue Installed Succesfully');
+  drupal_set_message('Give yourself a pat in the back. BIZX Production Queue Installed Succesfully.');
 }
 
 /**
@@ -18,7 +18,7 @@ function prodqueue_install() {
  */
 function prodqueue_uninstall() {
   drupal_uninstall_schema('prodqueue');
-  drupal_set_message('BIZX Production Queue Uninstalled Succesfully');
+  drupal_set_message('BIZX Production Queue Uninstalled Succesfully.');
 }
 
 /**
@@ -35,6 +35,27 @@ function prodqueue_schema() {
     'primary key' => array('nid'),
   );
 */
+   $schema['prodqueue_settings'] = array(
+    'description' => 'Table for BIZX Production Queue settings.',
+    'fields' => array(
+      'type' => array(
+        'type' => 'varchar', 
+        'length' => 128, 
+        'not null' => TRUE, 
+        ),
+      'points' => array(
+        'type' => 'int', 
+        'not null' => TRUE, 
+        'default' => 0
+        ),
+      'revisit' => array(
+        'type' => 'int', 
+        'not null' => TRUE, 
+        'default' => 0
+      ),
+    ),
+    'primary key' => array('nid'),
+   );
  
    $schema['prodqueue'] = array(
 	'description' => 'Table for BIZX Production Queue module',
@@ -44,7 +65,7 @@ function prodqueue_schema() {
         'unsigned' => TRUE,
         'not null' => TRUE,
         'default' => 0),
-    'uid' => array(
+      'uid' => array(
 		'description' => 'uid of user who requested content',
         'type' => 'int',
         'unsigned' => TRUE,
@@ -55,7 +76,7 @@ function prodqueue_schema() {
 		'unsigned' => TRUE,
 		'not null' => TRUE,
 		'default' => 0),
-	'checked_out' => array(
+	  'checked_out' => array(
 		'type' => 'int',
 		'not null' => TRUE,
 		'default' => 0),
@@ -100,11 +121,16 @@ function prodqueue_schema() {
 		'type' => 'int',
 		'not null' => TRUE,
 		'default' => -1),
-	'rejected_time' => array(
+	  'rejected_time' => array(
 		'type' => 'int',
 		'unsigned' => TRUE,
 		'not null' => TRUE,
 		'default' => 0),
+      'revisit_time' => array(
+        'type' => 'int',
+        'unsigned' => TRUE,
+        'not null' => TRUE,
+        'default' => 0),
     ),
     'primary key' => array('nid'),
   );
@@ -112,45 +138,45 @@ function prodqueue_schema() {
    $schema['prodqueue_requested_edits'] = array(
 	'description' => 'Table for tracking requested edits on nodes',
     'fields' => array(
-	'nid' => array(
+	  'nid' => array(
         'type' => 'int',
         'unsigned' => TRUE,
         'not null' => TRUE,
         'default' => 0),
-	'vid' => array(
+	  'vid' => array(
         'type' => 'int',
         'unsigned' => TRUE,
         'not null' => TRUE,
         'default' => 0),
-    'request_uid' => array(
+      'request_uid' => array(
 		'description' => 'uid of user who requested the change',
         'type' => 'int',
         'unsigned' => TRUE,
         'not null' => TRUE,
         'default' => 0),
-	'request_reason' => array(
+	  'request_reason' => array(
 		'type' => 'text',
 		'size' => 'normal'),
-	'request_time' => array(
+	  'request_time' => array(
 		'type' => 'int',
 		'unsigned' => TRUE,
 		'not null' => TRUE,
 		'default' => 0),
-	'request_response' => array(
+	  'request_response' => array(
 		'type' => 'text',
 		'size' => 'normal'),
-	'response' => array(
+	  'response' => array(
 		'description' => 'no response= -1, approved=1 and denided=0',
 		'type' => 'int',
 		'not null' => TRUE,
 		'default' => -1),
-    'response_uid' => array(
+      'response_uid' => array(
 		'description' => 'uid of user who requested the change',
         'type' => 'int',
         'unsigned' => TRUE,
         'not null' => TRUE,
         'default' => 0),	
-	'response_time' => array(
+	  'response_time' => array(
 		'type' => 'int',
 		'unsigned' => TRUE,
 		'not null' => TRUE,
