@@ -1,5 +1,3 @@
 This is a git test file.
 
-This is Edwins edit. Test.,
-
-This is another test.
+This is Edwins edit. Test.
