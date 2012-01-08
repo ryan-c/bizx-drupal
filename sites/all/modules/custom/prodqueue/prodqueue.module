@@ -31,20 +31,18 @@ function prodqueue_menu() {
 		'access callback' => TRUE,
 		'expanded' => TRUE,
 	);
-	$items['prodqueue/callbacks/generate_pages'] = array(
+    
+    $items['queue/%'] = array(
+        'page callback' => 'prodqueue_queue_page',
+        'page arguments' => array(1),
+        'access callback' => 'prodqueue_queue_page_access',
+        'access arguments' => array(1)
+    );
+    
+	$items['prodqueue/generate'] = array(
 		'type' => MENU_CALLBACK,
 		'title' => 'Generate Page Requests',
-
 		'page callback' => 'prodqueue_request_pages',
-		'page arguments' => array(t('The menu entry for this page is of type MENU_CALLBACK, so it provides only a path but not a link in the menu links, but it is the same in every other way to the simplest example.')),
-		'access callback' => TRUE,
-	);
-  
-	$items['prodqueue/manage/content-checkout_list'] = array(
-		//'type' => MENU_CALLBACK,
-		'description' => t('List all content thay may be checked out'),
-		'title' => 'Check Out Content',
-		'page callback' => 'prodqueue_content_checkout_list',
 		'access callback' => TRUE,
 	);
   	
@@ -271,4 +269,209 @@ function prodqueue_nodeapi(&$node, $op, $teaser, $page) {
 			db_query('DELETE FROM {prodqueue} WHERE nid = %d', $node->nid);
 			break;
 	}
+}
+
+
+
+function prodqueue_queue_page($queue) {
+    switch($queue) {
+        case 'new':
+            return prodqueue_queue_new();
+            break;
+        case 'user':
+            return prodqueue_queue_user();
+            break;
+        case 'photo':
+            return prodqueue_queue_photo();
+            break;
+        case 'editor':
+            return prodqueue_queue_editor();
+            break;
+        case 'publish':
+            return prodqueue_queue_publish();
+            break;
+        case 'revisit':
+            return prodqueue_queue_revisit();
+            break;
+        case 'edits':
+            return prodqueue_queue_edits();
+            break;
+        case 'rejected':
+            return prodqueue_queue_rejected();
+            break;
+    }
+}
+
+function prodqueue_queue_page_access($queue) {
+    // TODO: Needs logic to determine if the user can access the particular queue screen.   
+    return TRUE;
+}
+
+/*
+ * New Content Queue
+ */
+
+function prodqueue_queue_new_data() {
+    $result = db_query('SELECT DISTINCT n.nid, nt.type, n.title, n.created FROM {prodqueue} p, {node} n, {node_type} nt WHERE n.nid = p.nid AND n.type = nt.type AND p.content_ready = -1 AND n.status = 0');
+    
+    while($row = db_fetch_array($result)) {
+        $data[$row['nid']] = array(
+            'nid' => $row['nid'],
+            'type' => $row['type'],
+            'title' => $row['title'],
+            'created' => $row['created'],
+        );
+    }
+    
+    return $data;
+}
+
+function prodqueue_queue_new_count() {
+    $count = db_fetch_array(db_query('SELECT COUNT(n.nid) as count FROM {prodqueue} p, {node} n, {node_type} nt WHERE n.nid = p.nid AND n.type = nt.type AND p.content_ready = -1 AND n.status = 0'));
+    return $count['count'];
+}
+
+function prodqueue_queue_new() {
+    drupal_set_title('Production Queue: New Content');
+    $data = prodqueue_queue_new_data();
+    
+    if(is_array($data)) {
+        $rows = array();
+        
+        foreach($data as $nid => $item) {
+            $rows[] = array(
+                l($item['title'], 'node/' . $nid),
+                $item['type'],
+                $item['created'],
+                l('Checkout', 'prodqueue/action/checkout/'. $nid),
+            );
+        }
+    
+        $header = array('Title', 'Type', 'Created', '');
+        
+        return theme('table', $header, $rows);
+    }
+    else {
+        return t('<p>There is no new content to be edited at this time.</p>');
+    }
+}
+
+/*
+ * User Queue
+ */
+
+function prodqueue_queue_user_data() {
+    
+}
+
+function prodqueue_queue_user_count() {
+    return 0;
+}
+
+function prodqueue_queue_user() {
+    drupal_set_title('Production Queue: Your Pages');
+    return "user";
+}
+
+
+/*
+ * Photo Queue
+ */
+
+function prodqueue_queue_photo_data() {
+    
+}
+
+function prodqueue_queue_photo_count() {
+    return 0;
+}
+
+function prodqueue_queue_photo() {
+    drupal_set_title('Production Queue: Photo Queue');
+    return "photo";
+}
+
+/*
+ * Editorial Review Queue
+ */
+
+function prodqueue_queue_editor_data() {
+    
+}
+
+function prodqueue_queue_editor_count() {
+    return 0;
+}
+
+function prodqueue_queue_editor() {
+    drupal_set_title('Production Queue: Editorial Review');
+    return "editor";
+}
+
+/*
+ * Publisher Review Queue
+ */
+
+function prodqueue_queue_publish_data() {
+    
+}
+
+function prodqueue_queue_publish_count() {
+    return 0;
+}
+
+function prodqueue_queue_publish() {
+    drupal_set_title('Production Queue: Publisher Review');
+    return "publish";
+}
+
+/*
+ * Rejected Content Queue
+ */
+
+function prodqueue_queue_rejected_data() {
+    
+}
+
+function prodqueue_queue_rejected_count() {
+    return 0;
+}
+
+function prodqueue_queue_rejected() {
+    drupal_set_title('Production Queue: Rejected Content');
+    return "rejected";
+}
+
+/*
+ * Revisit Content Queue
+ */
+
+function prodqueue_queue_revisit_data() {
+    
+}
+
+function prodqueue_queue_revisit_count() {
+    return 0;
+}
+
+function prodqueue_queue_revisit() {
+    drupal_set_title('Production Queue: Content Revisit Queue');
+    return "revisit";
+}
+
+/*
+ * Requested Edit Queue
+ */
+
+function prodqueue_queue_edits_data() {
+    
+}
+
+function prodqueue_queue_edits_count() {
+    return 0;
+}
+
+function prodqueue_queue_edits() {
+    drupal_set_title('Production Queue: Requested Content Edits');
+    return "edits";
 }

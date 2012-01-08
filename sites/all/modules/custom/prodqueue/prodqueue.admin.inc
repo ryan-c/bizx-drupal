@@ -9,7 +9,7 @@ function prodqueue_settings() {
 }
 
 function prodqueue_get_settings() {
-    
+    $settings = array();
     // nice and clean.
     $result = db_query('SELECT type, points, revisit from {prodqueue_settings}');
     
@@ -19,6 +19,17 @@ function prodqueue_get_settings() {
     }
     
     return $settings;
+}
+
+function prodqueue_get_types() {
+    $types = array();
+    $result = db_query('SELECT type FROM {prodqueue_settings}');
+    
+    while($row = db_fetch_array($result)) {
+        $types[] = $row['type'];
+    }
+    
+    return $types;
 }
 
 function prodqueue_admin_settings() {   
