@@ -4,8 +4,8 @@ function seo_keywords_menu() {
     $items = array();
     
     $items['admin/settings/bizx/seo_keywords'] = array(
-      'title'    =>  'Custom SEO Configuration',
-      'description' => 'Custom SEO Configuration for cck field associated with different content types.',
+      'title'    =>  'SEO Keywords Configuration',
+      'description' => 'SEO Keywords Configuration for fields associated with different content types.',
       'page callback'  =>  'seo_keywords_admin_settings',
       'access callback' => TRUE,
       'type' => MENU_NORMAL_ITEM
@@ -176,7 +176,7 @@ function seo_keywords_form_alter(&$form, $form_state, $form_id) {
 */
 function seo_keywords_nodeapi(&$node, $op, $teaser, $page) {
     switch ($op) {
-		case 'view':
+		/*case 'view':
 			global $user;
 			// If only the node summary is being displayed, or if the
 			// user is an anonymous user (not logged in), abort.
@@ -193,7 +193,8 @@ function seo_keywords_nodeapi(&$node, $op, $teaser, $page) {
 				'#weight' => 10
 			);
 			break;
-		    
+		  */
+		   
 		// When the content editing form is submitted, we need to validate the input
 		// to make sure the user made a selection, since we are requiring the SEO keywords. 
 		case 'validate':
