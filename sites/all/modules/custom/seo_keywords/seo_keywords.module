@@ -188,10 +188,10 @@ function seo_keywords_nodeapi(&$node, $op, $teaser, $page) {
 				//break;
 			//}
 			// Add our form as a content item.
-			$node->content['seo_keywords_form'] = array(
-				'#value' => drupal_get_form('seo_keywords_entry_form', $node),
-				'#weight' => 10
-			);
+			//$node->content['seo_keywords_form'] = array(
+		    //		'#value' => drupal_get_form('seo_keywords_entry_form', $node),
+			//	'#weight' => 10
+			//);
 			break;
 		    
 		// When the content editing form is submitted, we need to validate the input
@@ -280,8 +280,14 @@ $somecount++;
 
 	$keyword1_count = substr_count($nodeview, html_entity_decode(trim(strtolower($keywords['keyword1']))));
 	$keyword2_count = substr_count($nodeview, html_entity_decode(trim(strtolower($keywords['keyword2']))));
-	$keyword3_count = substr_count($nodeview, html_entity_decode(trim(strtolower($keywords['keyword3']))));
-	$keyword4_count = substr_count($nodeview, html_entity_decode(trim(strtolower($keywords['keyword4']))));
+	
+	if(!empty($keywords['keyword3'])) {
+		$keyword3_count = substr_count($nodeview, html_entity_decode(trim(strtolower($keywords['keyword3']))));
+	}
+	
+	if(!empty($keywords['keyword4'])) {	
+		$keyword4_count = substr_count($nodeview, html_entity_decode(trim(strtolower($keywords['keyword4']))));
+	}
 	
 	$total_word_count = str_word_count($nodeview);
     
@@ -347,7 +353,7 @@ $somecount++;
 		return TRUE;
 	
 	}else{
-		drupal_set_message("Focus Keywords meet the minimun number of required instances count: $somecount");
+		//drupal_set_message("Focus Keywords meet the minimun number of required instances count: $somecount");
 		return FALSE;
 	}
 	
