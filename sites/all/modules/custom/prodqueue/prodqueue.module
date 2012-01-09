@@ -45,6 +45,14 @@ function prodqueue_menu() {
 		'page callback' => 'prodqueue_request_pages',
 		'access callback' => TRUE,
 	);
+    
+    $items['prodqueue/action/%'] = array(
+        'page callback' => 'prodqueue_action_page',
+        'page arguments' => array(2),
+        'access callback' => 'prodqueue_action_page_access',
+        'access arguments' => array(2)
+    
+    );
   	
 	return $items;
 }
@@ -265,12 +273,73 @@ function prodqueue_nodeapi(&$node, $op, $teaser, $page) {
     switch ($op) {
 		// Delete is called when the node is being deleted, it gives us a chance
 		// to delete the seo keywords and all revisions as well.
+        case 'insert':
+            // We create a prodqueue entry for the node.
+            $watched_types = prodqueue_get_types();
+            
+            if(in_array($node->type, $watched_types)) {
+                db_query('INSERT INTO {prodqueue} (nid, uid) VALUES(%d, %d)', $node->nid, $node->uid);
+            }
+        case 'load':
+            // Make sure we have prodqueue in the $node object when we do a node_load().
+            $prodqueue = db_fetch_array(db_query('SELECT * FROM {prodqueue} WHERE nid = %d', $node->nid));
+            return array('prodqueue' => $prodqueue);
+            break;
 		case 'delete':
 			db_query('DELETE FROM {prodqueue} WHERE nid = %d', $node->nid);
 			break;
 	}
 }
 
+/**
+ * Implementation of hook_form_alter() to modify node edit screens.
+ */
+function prodqueue_form_alter(&$form, $form_state, $form_id) {
+     if (isset($form['type']) && isset($form['#node']) && $form['type']['#value'] . '_node_form' == $form_id) {
+         // Are we watching this node in prodqueue?
+         if(is_array($form['#node']->prodqueue)) {
+             $form['prodqueue'] = array(
+                  '#type' => 'fieldset', 
+                  '#title' => t('Production Queue'), 
+                  '#weight' => -100,
+                );
+            $form['prodqueue']['watched'] = array(
+                '#value' => t('This node is in prodqueue.'),
+            );
+            
+            $form['prodqueue']['content_submit'] = array(
+                '#type' => 'submit',
+                '#value' => t('Save and Check-In')
+            );
+            
+            $form['prodqueue']['photo_submit'] = array(
+                '#type' => 'submit',
+                '#value' => t('Save and Check-In')
+            );
+            
+            $form['prodqueue']['edit_submit'] = array(
+                '#type' => 'submit',
+                '#value' => t('Request Edit to Page')
+            );
+            
+            $form['prodqueue']['content_reject'] = array(
+                '#type' => 'submit',
+                '#value' => t('Reject Content')
+            );
+            
+            $form['prodqueue']['photo_reject'] = array(
+                '#type' => 'submit',
+                '#value' => t('Reject Photo')
+            );
+            
+            $form['#submit'][] = 'prodqueue_node_submit';
+         }
+     }
+}
+
+function prodqueue_node_submit($form_id, &$form_state) {
+    drupal_set_message('Catching prodqueue on submit.');
+}
 
 
 function prodqueue_queue_page($queue) {
@@ -280,6 +349,9 @@ function prodqueue_queue_page($queue) {
             break;
         case 'user':
             return prodqueue_queue_user();
+            break;
+        case 'type':
+            return prodqueue_queue_type();
             break;
         case 'photo':
             return prodqueue_queue_photo();
@@ -312,7 +384,7 @@ function prodqueue_queue_page_access($queue) {
  */
 
 function prodqueue_queue_new_data() {
-    $result = db_query('SELECT DISTINCT n.nid, nt.type, n.title, n.created FROM {prodqueue} p, {node} n, {node_type} nt WHERE n.nid = p.nid AND n.type = nt.type AND p.content_ready = -1 AND n.status = 0');
+    $result = db_query('SELECT DISTINCT n.nid, nt.type, n.title, n.created FROM {prodqueue} p, {node} n, {node_type} nt WHERE n.nid = p.nid AND n.type = nt.type AND p.content_ready = -1 AND p.checked_out = 0 AND n.status = 0');
     
     while($row = db_fetch_array($result)) {
         $data[$row['nid']] = array(
@@ -327,7 +399,7 @@ function prodqueue_queue_new_data() {
 }
 
 function prodqueue_queue_new_count() {
-    $count = db_fetch_array(db_query('SELECT COUNT(n.nid) as count FROM {prodqueue} p, {node} n, {node_type} nt WHERE n.nid = p.nid AND n.type = nt.type AND p.content_ready = -1 AND n.status = 0'));
+    $count = db_fetch_array(db_query('SELECT COUNT(n.nid) as count FROM {prodqueue} p, {node} n, {node_type} nt WHERE n.nid = p.nid AND n.type = nt.type AND p.content_ready = -1 AND p.checked_out = 0 AND n.status = 0'));
     return $count['count'];
 }
 
@@ -361,18 +433,74 @@ function prodqueue_queue_new() {
  */
 
 function prodqueue_queue_user_data() {
+    global $user;
+    $result = db_query('SELECT n.nid, nt.type, n.title, p.checked_out_time FROM {prodqueue} p, {node} n, {node_type} nt WHERE n.nid = p.nid AND nt.type = n.type AND p.checked_out_uid = %d AND p.checked_out = 1 AND n.status = 0', $user->uid);
     
+    while($row = db_fetch_array($result)) {
+        $data[$row['nid']] = array(
+            'nid' => $row['nid'],
+            'type' => $row['type'],
+            'title' => $row['title'],
+            'checked_out_time' => $row['checked_out_time'],
+        );
+    }
+    
+    return $data;
 }
 
 function prodqueue_queue_user_count() {
-    return 0;
+    global $user;
+    $count = db_fetch_array(db_query('SELECT count(n.nid) as count FROM {prodqueue} p, {node} n, {node_type} nt WHERE n.nid = p.nid AND nt.type = n.type AND p.checked_out_uid = %d AND p.checked_out = 1 AND n.status = 0', $user->uid));
+    return $count['count'];
 }
 
 function prodqueue_queue_user() {
     drupal_set_title('Production Queue: Your Pages');
-    return "user";
+    $data = prodqueue_queue_user_data();
+    
+    if(is_array($data)) {
+        $rows = array();
+        
+        foreach($data as $nid => $item) {
+            $rows[] = array(
+                l($item['title'], 'node/' . $nid),
+                $item['type'],
+                $item['checked_out_time'],
+                l('Edit', 'node/'. $nid . '/edit'),
+            );
+        }
+    
+        $header = array('Title', 'Type', 'Checked Out Time', '');
+        
+        return theme('table', $header, $rows);
+    }
+    else {
+        return t('<p>You do not currently have any content checked out to yourself.</p>');
+    }
 }
 
+/*
+ * Content Type Queue
+ */
+
+function prodqueue_queue_type_data($type) {
+    $result = db_query('SELECT n.nid, n.title FROM {node} n WHERE n.type = "%s" AND n.status = 1', $type);
+    
+    while($row = db_fetch_array($result)) {
+        $data[$row['nid']] = array(
+            'nid' => $row['nid'],
+            'title' => $row['title'],
+        );
+    }
+    
+    return $data;
+}
+
+function prodqueue_queue_type() {
+    $type_name = node_get_types('name', arg(2));
+    drupal_set_title('Production Queue: Published ' . $type_name);
+    return "type";
+}
 
 /*
  * Photo Queue
@@ -474,4 +602,53 @@ function prodqueue_queue_edits_count() {
 function prodqueue_queue_edits() {
     drupal_set_title('Production Queue: Requested Content Edits');
     return "edits";
+}
+
+/*
+ * Content Type Counts
+ */
+
+function prodqueue_published_count($type) {
+    $count = db_fetch_array(db_query('SELECT COUNT(*) as count FROM {node} WHERE type = "%s" AND status = 1', $type));
+    return $count['count'];
+}
+
+
+
+/*
+ * Actions
+ */
+
+function prodqueue_action_page($action) {
+    switch($action) {
+        case 'checkout':
+            return prodqueue_action_checkout();
+            break;
+        case 'checkin':
+            return prodqueue_action_checkin();
+            break;
+    }
+}
+
+function prodqueue_action_page_access($action) {
+    // TODO: Need to check if users have specific rights to do the action.
+    return TRUE;
+}
+
+
+/*
+ * Checkout content.
+ */
+
+function prodqueue_action_checkout() {
+    global $user;
+    $nid = arg(3);
+    
+    db_query('UPDATE {prodqueue} SET checked_out_uid = %d, checked_out = 1, checked_out_time = UNIX_TIMESTAMP() WHERE nid = %d', $user->uid, $nid);
+    
+    drupal_goto('node/' . $nid . '/edit');
+}
+
+function prodqueue_action_checkin() {
+    
 }

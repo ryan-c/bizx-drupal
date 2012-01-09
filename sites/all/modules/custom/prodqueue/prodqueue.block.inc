@@ -70,6 +70,18 @@ function prodqueue_block_queue() {
           $output .= '<li>' . $link . '</li>';
       }
       
+      $output .= '</ul><h3>Published</h3><ul>';
+    
+      $types = node_get_types('types');
+        
+      foreach($types as $machine => $type) {
+          $count = prodqueue_published_count($machine);
+            
+          if($count > 0) {
+              $output .= '<li>'. l($type->name, 'queue/type/' . $machine) . ' <span class="prodqueue_block_marker">' . $count . '</span></li>';
+          }
+      }
+        
       $output .= '</ul>';
       
       return $output;
