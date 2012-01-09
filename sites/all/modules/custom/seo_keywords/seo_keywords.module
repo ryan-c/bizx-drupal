@@ -230,11 +230,11 @@ function seo_keywords_nodeapi(&$node, $op, $teaser, $page) {
 				'keyword2' => $node->keyword2, 
 				'keyword3' => $node->keyword3, 
 				'keyword4' => $node->keyword4);
-			dsm($op);
+			//dsm($op);
 			//if(!$node->is_request) {
 				if(!isset($node->revision_moderation)) {
 					seo_keywords_checkseo($node->nid,$node->vid,$keywords);
-					dsm($node);
+					//dsm($node);
 				}
 			//}
 			break;

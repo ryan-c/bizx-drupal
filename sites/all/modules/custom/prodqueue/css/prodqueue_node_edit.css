@@ -1,0 +1,45 @@
+.prodqueue_node_progress {
+	display: block;
+    -moz-border-radius: 10px;
+    -webkit-border-radius: 10px;
+    border-radius: 10px;
+    border: 1px solid #ccc;
+    background: #eee; 
+    padding: 5px;
+}
+
+.prodqueue_node_progress ol {
+	padding: 0;
+	margin: 0;
+}
+
+.prodqueue_node_progress ol li {
+	list-style-type: none; 
+	display: inline;
+	padding: 5px;
+}
+
+.prodqueue_node_progress ol li.not-started {
+	color: #aaa;
+}
+
+.prodqueue_node_progress ol li.in-progress {
+	background: #ccc;
+	-moz-border-radius: 10px;
+    -webkit-border-radius: 10px;
+    border-radius: 10px;
+    border: 1px solid #ccc;
+    background: #fff; 
+    font-weight: bold;
+    padding: 5px 10px;
+}
+
+.prodqueue_node_progress ol li.done {
+	color: green;
+}
+
+
+.prodqueue_node_info {
+	font-size: 120%;
+	padding: 10px 10px;
+}

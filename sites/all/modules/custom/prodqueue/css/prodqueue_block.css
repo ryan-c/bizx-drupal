@@ -1,0 +1,10 @@
+.prodqueue_block_marker {
+	-moz-border-radius: 33px;
+    -webkit-border-radius: 33px;
+    border-radius: 10px;
+    background: #336699;
+    color: #fff;
+    padding: 3px 5px;
+    font-size: 80%;
+    font-weight: bold;
+}
