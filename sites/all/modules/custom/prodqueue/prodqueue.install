@@ -2,7 +2,7 @@
 
 /**
  * @file
- * seo keywords module's install and uninstall code.
+ * Production Queue module's install and uninstall code.
  */
 
 /**
@@ -65,7 +65,7 @@ function prodqueue_schema() {
         'not null' => TRUE,
         'default' => 0),
       'uid' => array(
-		'description' => 'uid of user who requested content',
+		'description' => 'uid of user who requested node',
         'type' => 'int',
         'unsigned' => TRUE,
         'not null' => TRUE,
@@ -80,7 +80,7 @@ function prodqueue_schema() {
 		'not null' => TRUE,
 		'default' => 0),
 	  'checked_out_uid' => array(
-		'description' => 'uid of user who has checked out content',
+		'description' => 'uid of user who has checked out node',
 		'type' => 'int',
 		'not null' => TRUE,
 		'default' => 0),
